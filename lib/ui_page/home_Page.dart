@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage>
        )
      ],),
      ),
+       ///body start..
        body: allNotes.isNotEmpty?Stack(
          children: [
            GridView.builder(itemCount: allNotes.length,
