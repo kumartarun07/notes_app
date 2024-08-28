@@ -13,6 +13,7 @@ class HomePage extends StatefulWidget
 
 class _HomePageState extends State<HomePage>
 {
+  ///Controller..
   TextEditingController titlecontroller = TextEditingController();
   TextEditingController desccontroller = TextEditingController();
   DbHelper myDb = DbHelper.getInstance();
