@@ -2,8 +2,11 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:notes_app/db_helper/db_provider.dart';
 import 'package:notes_app/db_helper/dbhelper.dart';
+import 'package:notes_app/db_helper/note_model.dart';
 import 'package:notes_app/ui_page/add_notes.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget
 {
@@ -21,100 +24,99 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    getnotes();
+   // getnotes();
   }
-  getnotes()
-  async{
-    allNotes = await myDb.fetchAllNotes();
-   setState(() {
 
-   });
-  }
   @override
-  Widget build(BuildContext context)
-  {
+  Widget build(BuildContext context) {
+    TextEditingController titlecontroller = TextEditingController();
+    TextEditingController desccontroller = TextEditingController();
+    return Scaffold(backgroundColor:Color(0xff252525) ,
+      appBar: AppBar(backgroundColor: Color(0xff252525),
+        title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Notes",style: TextStyle(color: Colors.white),),
+            Container(
+              height: 50,width: 50,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),color: Color(0xff3B3B3B)),
+              child: IconButton(onPressed: (){},icon: Icon(Icons.search,size: 25,color:Colors.white,),),
+            )
+          ],),
+      ),
+      ///body start..
+      body:Consumer<DbProvider>(builder: (context, value, child){
+        List<NoteModel> allNotes = context.read<DbProvider>().getnotes();
+        return allNotes.isNotEmpty?Stack(
+            children: [
+              GridView.builder(itemCount: allNotes.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    //mainAxisExtent: 9/16,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 5,
+                    mainAxisExtent: 200,
 
-   return Scaffold(backgroundColor:Color(0xff252525) ,
-     appBar: AppBar(backgroundColor: Color(0xff252525),
-     title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-       children: [
-       Text("Notes",style: TextStyle(color: Colors.white),),
-       Container(
-         height: 50,width: 50,
-         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),color: Color(0xff3B3B3B)),
-         child: IconButton(onPressed: (){},icon: Icon(Icons.search,size: 25,color:Colors.white,),),
-       )
-     ],),
-     ),
-       ///body start..
-       body: allNotes.isNotEmpty?Stack(
-         children: [
-           GridView.builder(itemCount: allNotes.length,
-               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                 crossAxisCount: 2,
-                 //mainAxisExtent: 9/16,
-                 crossAxisSpacing: 15,
-                 mainAxisSpacing: 5,
-                 mainAxisExtent: 200,
+                  ),
+                  itemBuilder: (_,index){
+                    return Container(
+                      margin: EdgeInsets.only(top: 10),
+                      width: 200,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(15),
+                          color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)]),
+                      child: InkWell(onTap: (){
+                        /* titlecontroller.text = allNotes[index][DbHelper.COLUMN_NOTE_TITLE];
+                         desccontroller.text = allNotes[index][DbHelper.COLUMN_NOTE_DESC];*/
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> AddNotes(next: myscaf(isUpdate: true,sno:allNotes[index].sno! ))),);
 
-               ),
-               itemBuilder: (_,index){
-             return Container(
-               margin: EdgeInsets.only(top: 10),
-               width: 200,
-               decoration: BoxDecoration(borderRadius: BorderRadius.circular(15),
-                   color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)]),
-               child: InkWell(onTap: (){
-                 titlecontroller.text = allNotes[index][DbHelper.COLUMN_NOTE_TITLE];
-                 desccontroller.text = allNotes[index][DbHelper.COLUMN_NOTE_DESC];
-               Navigator.push(context, MaterialPageRoute(builder: (context)=> AddNotes(next: myscaf(isUpdate: true,sno:allNotes[index][DbHelper.COLUMN_NOTE_SNO] ))),);
+                      },
+                        child: Stack(alignment: Alignment.topRight,
+                          children: [
+                            Container(width: 150,margin: EdgeInsets.all(50),
+                              child: Column(mainAxisAlignment: MainAxisAlignment.center,
+                                // crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text( allNotes[index].title),
+                                ],
+                              ),
+                            ),
+                            IconButton(onPressed: ()
+                            async {
+                              context.read<DbProvider>().deletenote(allNotes[index].sno!);
+                              /* bool check = await myDb.deleteNotes(sno:allNotes[index][DbHelper.COLUMN_NOTE_SNO]);
+                               if(check)
+                               {
+                                 getnotes();
+                               }*/
+                              context.read<DbProvider>().deletenote(allNotes[index].sno!);
+                            }, icon: Icon(Icons.dangerous,size: 30,color: Colors.white,)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+            ]
 
-               },
-                 child: Stack(alignment: Alignment.topRight,
-                   children: [
-                     Container(width: 150,margin: EdgeInsets.all(50),
-                       child: Column(mainAxisAlignment: MainAxisAlignment.center,
-                        // crossAxisAlignment: CrossAxisAlignment.center,
-                         children: [
-                           Text( allNotes[index][DbHelper.COLUMN_NOTE_TITLE]),
-                         ],
-                       ),
-                     ),
-                     IconButton(onPressed: ()
-                    async {
-                       bool check = await myDb.deleteNotes(sno:allNotes[index][DbHelper.COLUMN_NOTE_SNO]);
-                       if(check)
-                         {
-                           getnotes();
-                         }
-                     }, icon: Icon(Icons.dangerous,size: 30,color: Colors.white,)),
-                   ],
-                 ),
-               ),
-             );
-               }),
-         ]
+        )
+            :Center(child: Text("No Notes Found!!",style: TextStyle(fontSize: 22,color: Colors.white),),
 
-       )
-           :Center(child: Text("No Notes Found!!"),
+        );
+      }),
 
-       ),
+      floatingActionButton: FloatingActionButton(onPressed: (){
+        titlecontroller.clear();
+        desccontroller.clear();
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>AddNotes(next: myscaf())));
 
-       floatingActionButton: FloatingActionButton(onPressed: (){
-         titlecontroller.clear();
-         desccontroller.clear();
-         Navigator.push(context, MaterialPageRoute(builder: (context)=>AddNotes(next: myscaf())));
+      },
+        backgroundColor: Colors.black,elevation: 11,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        child: Icon(Icons.add,size: 30,color: Colors.white,),),
 
-       },
-         backgroundColor: Colors.black,elevation: 11,
-         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-         child: Icon(Icons.add,size: 30,color: Colors.white,),),
-
-   );
+    );
   }
-
   Widget myscaf({isUpdate = false,int sno =0})
   {
+
     return   Scaffold(backgroundColor: Color(0xff252525),
       appBar: AppBar(backgroundColor: Color(0xff252525),
         leadingWidth: 70,
@@ -124,7 +126,7 @@ class _HomePageState extends State<HomePage>
           child: Container(height: 50,width: 50,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(15),color: Color(0xff3B3B3B)),
             child: IconButton(onPressed: (){
-              Navigator.pop(context);
+              // Navigator.pop(context);
             },icon: Icon(Icons.arrow_back_ios_new,size: 25,color: Colors.white,),),
           ),
         ),
@@ -137,7 +139,8 @@ class _HomePageState extends State<HomePage>
               child: IconButton(onPressed: (){
                 if(titlecontroller.text.isNotEmpty && desccontroller.text.isNotEmpty)
                 {
-                  myDb.updateNote(mtitle: titlecontroller.text, mdesc: desccontroller.text, sno: sno);
+                  //myDb.updateNote(mtitle: titlecontroller.text, mdesc: desccontroller.text, sno: sno);
+                  context.read<DbProvider>().updatenote(NoteModel(title: titlecontroller.text, desc: desccontroller.text), sno);
                   Navigator.pop(context);
                 }
               },icon: Icon(Icons.edit,color: Colors.white,size: 25,)),
@@ -148,7 +151,10 @@ class _HomePageState extends State<HomePage>
               async{
                 if(titlecontroller.text.isNotEmpty && desccontroller.text.isNotEmpty)
                 {
-                  await myDb.addNote(title: titlecontroller.text, desc: desccontroller.text);
+                  titlecontroller.clear();
+                  desccontroller.clear();
+                  //await myDb.addNote(title: titlecontroller.text, desc: desccontroller.text);
+                  context.read<DbProvider>().addnotes(NoteModel(title: titlecontroller.text, desc: desccontroller.text));
                   Navigator.pop(context);
                 }
               },child: Text("Save",style: TextStyle(fontSize: 20,color: Colors.white),),),
@@ -180,7 +186,12 @@ class _HomePageState extends State<HomePage>
       ),
     );
   }
-}
+  }
+
+
+
+
+
 
 
 

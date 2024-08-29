@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:notes_app/db_helper/note_model.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -38,30 +39,30 @@ class DbHelper
     },version: 1);
   }
 
-  Future<bool> addNote({required String title , required String desc})
+  Future<bool> addNote({required NoteModel newnote})
       async{
                var nDB =await getDB();
-               int rowsEffected = await nDB.insert(TABLE_NOTE, {
-               COLUMN_NOTE_TITLE :title,
-                 COLUMN_NOTE_DESC:desc,
-               });
+               int rowsEffected = await nDB.insert(TABLE_NOTE, newnote.toMap());
                return rowsEffected>0;
       }
 
 
-     Future<List<Map<String,dynamic>>> fetchAllNotes()
+     Future<List<NoteModel>> fetchAllNotes()
       async{
         var nDB = await getDB();
-        return await nDB.query(TABLE_NOTE);
+        var data= await nDB.query(TABLE_NOTE);
+        List<NoteModel>mNotes =[];
+        for(Map<String,dynamic> eachData in data){
+            mNotes.add(NoteModel.frommap(eachData));
+        }
+        return mNotes;
       }
 
-     Future<bool> updateNote({required String mtitle , required String mdesc,required int sno})
+     Future<bool> updateNote({required NoteModel update,required int sno})
       async {
           var nDB = await getDB();
-          int rowsEffected = await nDB.update(TABLE_NOTE,{
-            COLUMN_NOTE_TITLE : mtitle,
-            COLUMN_NOTE_DESC :mdesc,
-          },where:"$COLUMN_NOTE_SNO = $sno"
+          int rowsEffected = await nDB.update(TABLE_NOTE,update.toMap()
+              ,where:"$COLUMN_NOTE_SNO = $sno"
           );return rowsEffected>0;
        }
 

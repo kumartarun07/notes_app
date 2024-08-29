@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../db_helper/dbhelper.dart';
@@ -93,3 +94,4 @@ class _NotesPageState extends State<NotesPage>
    );
   }
 }
+*/
